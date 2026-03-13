@@ -1,0 +1,238 @@
+{
+  "timestamp": "2026-03-03T03:17:51.097089+00:00",
+  "base_model": "qwen3.5:2b",
+  "roles": [
+    "planner",
+    "researcher",
+    "answerer",
+    "mailer"
+  ],
+  "models_requested": [
+    "qwen3.5:2b"
+  ],
+  "models_used": [
+    "qwen3.5:2b"
+  ],
+  "models_missing": [],
+  "question_count": 2,
+  "by_role": {
+    "planner": [
+      {
+        "role": "planner",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "question_count": 2,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 23636.810400009155,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 25095.221400022507,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 22178.399399995804,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "researcher": [
+      {
+        "role": "researcher",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "question_count": 2,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 22770.703750014305,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 20965.04710006714,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 24576.36039996147,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "answerer": [
+      {
+        "role": "answerer",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "question_count": 2,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 22158.933150023222,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 19565.37300002575,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 24752.493300020695,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "mailer": [
+      {
+        "role": "mailer",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "case_count": 3,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 9588.113266646862,
+        "errors": 0,
+        "records": [
+          {
+            "id": "m1",
+            "prompt": "email to dad about I will reach by 6pm",
+            "latency_ms": 12419.616499960423,
+            "pass": true,
+            "response_preview": "Updated draft. Confirm send?\nTo: Praveen <praveen-kumarp@outlook.com>\nSubject: Arrival time confirmed\nTone: formal conversational\nBody:\nHello Praveen!\n\nI will reach you by 6pm.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no (or send edits).",
+            "error": null
+          },
+          {
+            "id": "m2",
+            "prompt": "email to brother about please share your notes",
+            "latency_ms": 10378.2825999856,
+            "pass": true,
+            "response_preview": "Updated draft. Confirm send?\nTo: Praket <ppkinhome@gmail.com>\nSubject: Your notes\nTone: formal conversational\nBody:\nHello Praket!\n\nPlease share your notes.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no (or send edits).",
+            "error": null
+          },
+          {
+            "id": "m3",
+            "prompt": "email to alice about hello",
+            "latency_ms": 5966.440699994564,
+            "pass": true,
+            "response_preview": "No allowlisted contact found for 'alice'. Use /contacts to see available names.",
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ]
+  }
+}

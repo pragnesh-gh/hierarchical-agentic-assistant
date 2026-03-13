@@ -1,0 +1,193 @@
+{
+  "timestamp": "2026-03-01T20:09:57.397171+00:00",
+  "base_model": "qwen3:4b",
+  "roles": [
+    "mailer"
+  ],
+  "models_requested": [
+    "qwen3:4b",
+    "gemma3:4b",
+    "gemma3n:e2b",
+    "qwen3:1.7b"
+  ],
+  "models_used": [
+    "qwen3:4b",
+    "gemma3:4b",
+    "gemma3n:e2b",
+    "qwen3:1.7b"
+  ],
+  "models_missing": [],
+  "question_count": 10,
+  "by_role": {
+    "mailer": [
+      {
+        "role": "mailer",
+        "model": "qwen3:1.7b",
+        "model_map": {
+          "planner": "qwen3:4b",
+          "researcher": "qwen3:4b",
+          "answerer": "qwen3:4b",
+          "mailer": "qwen3:1.7b"
+        },
+        "case_count": 3,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 1294.5696666638057,
+        "errors": 0,
+        "records": [
+          {
+            "id": "m1",
+            "prompt": "email to dad about I will reach by 6pm",
+            "latency_ms": 3236.6441999673843,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praveen <praveen-kumarp@outlook.com>\nSubject: Arrival\nTone: formal conversational\nBody:\nHello Praveen!\n\nI will reach by 6pm\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m2",
+            "prompt": "email to brother about please share your notes",
+            "latency_ms": 637.0891999900341,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praket <ppkinhome@gmail.com>\nSubject: notes\nTone: formal conversational\nBody:\nHello Praket!\n\nI would like to share my notes. Please let me know if you need them.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m3",
+            "prompt": "email to alice about hello",
+            "latency_ms": 9.97560003399849,
+            "pass": true,
+            "response_preview": "Who should I email?",
+            "error": null
+          }
+        ],
+        "rank": 1
+      },
+      {
+        "role": "mailer",
+        "model": "gemma3:4b",
+        "model_map": {
+          "planner": "qwen3:4b",
+          "researcher": "qwen3:4b",
+          "answerer": "qwen3:4b",
+          "mailer": "gemma3:4b"
+        },
+        "case_count": 3,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 3385.923866669337,
+        "errors": 0,
+        "records": [
+          {
+            "id": "m1",
+            "prompt": "email to dad about I will reach by 6pm",
+            "latency_ms": 8153.256299972534,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praveen <praveen-kumarp@outlook.com>\nSubject: Arrival Confirmation\nTone: formal conversational\nBody:\nHello Praveen!\n\nPlease note that I will arrive by 6:00 PM.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m2",
+            "prompt": "email to brother about please share your notes",
+            "latency_ms": 1984.5542000234127,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praket <ppkinhome@gmail.com>\nSubject: Please Share Your Notes\nTone: formal conversational\nBody:\nHello Praket!\n\nCould you please share your notes with me?\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m3",
+            "prompt": "email to alice about hello",
+            "latency_ms": 19.96110001206398,
+            "pass": true,
+            "response_preview": "Who should I email?",
+            "error": null
+          }
+        ],
+        "rank": 2
+      },
+      {
+        "role": "mailer",
+        "model": "gemma3n:e2b",
+        "model_map": {
+          "planner": "qwen3:4b",
+          "researcher": "qwen3:4b",
+          "answerer": "qwen3:4b",
+          "mailer": "gemma3n:e2b"
+        },
+        "case_count": 3,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 7735.686900009711,
+        "errors": 0,
+        "records": [
+          {
+            "id": "m1",
+            "prompt": "email to dad about I will reach by 6pm",
+            "latency_ms": 16926.410499989986,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praveen <praveen-kumarp@outlook.com>\nSubject: Availability Update\nTone: formal conversational\nBody:\nHello Praveen!\n\nI will be available by 6pm.\n\nI wanted to let you know that I will be reachable by 6pm today.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m2",
+            "prompt": "email to brother about please share your notes",
+            "latency_ms": 6270.6318000257015,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praket <ppkinhome@gmail.com>\nSubject: Notes for review\nTone: formal conversational\nBody:\nHello Praket!\n\nI've compiled my notes on the topic. Please review them at your convenience.\n\nI've included all relevant information and details. Let me know if you have any questions or require further clarification.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m3",
+            "prompt": "email to alice about hello",
+            "latency_ms": 10.018400013446808,
+            "pass": true,
+            "response_preview": "Who should I email?",
+            "error": null
+          }
+        ],
+        "rank": 3
+      },
+      {
+        "role": "mailer",
+        "model": "qwen3:4b",
+        "model_map": {
+          "planner": "qwen3:4b",
+          "researcher": "qwen3:4b",
+          "answerer": "qwen3:4b",
+          "mailer": "qwen3:4b"
+        },
+        "case_count": 3,
+        "strict_pass_rate": 0.6666666666666666,
+        "guardrail_avg_score": 0.6666666666666666,
+        "avg_latency_ms": 84126.66606665651,
+        "errors": 0,
+        "records": [
+          {
+            "id": "m1",
+            "prompt": "email to dad about I will reach by 6pm",
+            "latency_ms": 108027.67230001092,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praveen <praveen-kumarp@outlook.com>\nSubject: Arrival by 6pm\nTone: formal conversational\nBody:\nHello Praveen!\n\nI will arrive by 6pm.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m2",
+            "prompt": "email to brother about please share your notes",
+            "latency_ms": 144340.32119998336,
+            "pass": false,
+            "response_preview": "Could not draft email: missing JSON payload.",
+            "error": null
+          },
+          {
+            "id": "m3",
+            "prompt": "email to alice about hello",
+            "latency_ms": 12.004699975252151,
+            "pass": true,
+            "response_preview": "Who should I email?",
+            "error": null
+          }
+        ],
+        "rank": 4
+      }
+    ]
+  }
+}

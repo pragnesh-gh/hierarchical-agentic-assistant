@@ -1,0 +1,869 @@
+{
+  "timestamp": "2026-03-01T19:20:33.831881+00:00",
+  "base_model": "qwen3:4b",
+  "roles": [
+    "researcher"
+  ],
+  "models_requested": [
+    "qwen3:4b",
+    "gemma3:4b",
+    "gemma3n:e2b",
+    "qwen3:1.7b"
+  ],
+  "models_used": [
+    "qwen3:4b",
+    "gemma3:4b",
+    "gemma3n:e2b",
+    "qwen3:1.7b"
+  ],
+  "models_missing": [],
+  "question_count": 10,
+  "by_role": {
+    "researcher": [
+      {
+        "role": "researcher",
+        "model": "qwen3:4b",
+        "model_map": {
+          "planner": "qwen3:4b",
+          "researcher": "qwen3:4b",
+          "answerer": "qwen3:4b",
+          "mailer": "qwen3:4b"
+        },
+        "question_count": 10,
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 47923.466229996084,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 18719.953999996185,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 89034.73550000787,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 15902.424899995327,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 14837.375600010157,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 19348.341899991035,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 6,
+            "question": "Compare Deep Work vs context switching research: give 2 points from the book and 2 from the web.",
+            "latency_ms": 49740.76550000906,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "both",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 7,
+            "question": "Define deep work and list 4 strategies Newport recommends, with page refs.",
+            "latency_ms": 23058.922600001097,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 8,
+            "question": "What is Tavily, and why use it for agents? One paragraph plus a source.",
+            "latency_ms": 92887.0664999783,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "unknown",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 9,
+            "question": "Create a checklist I can follow tomorrow to do deep work (book-grounded) plus one web-based tip.",
+            "latency_ms": 108170.60469996929,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 10,
+            "question": "Is Deep Work more about discipline or environment? Give evidence from book and web.",
+            "latency_ms": 47534.47110000253,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "both",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          }
+        ],
+        "rank": 1
+      },
+      {
+        "role": "researcher",
+        "model": "qwen3:1.7b",
+        "model_map": {
+          "planner": "qwen3:4b",
+          "researcher": "qwen3:1.7b",
+          "answerer": "qwen3:4b",
+          "mailer": "qwen3:4b"
+        },
+        "question_count": 10,
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 48050.2285400033,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 19433.4919000268,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 79245.48989999294,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 17817.67600002885,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 27207.24430000782,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 16080.487300008535,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 6,
+            "question": "Compare Deep Work vs context switching research: give 2 points from the book and 2 from the web.",
+            "latency_ms": 36484.583199977875,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "both",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 7,
+            "question": "Define deep work and list 4 strategies Newport recommends, with page refs.",
+            "latency_ms": 27224.358499974012,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 8,
+            "question": "What is Tavily, and why use it for agents? One paragraph plus a source.",
+            "latency_ms": 123859.66670000553,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "unknown",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 9,
+            "question": "Create a checklist I can follow tomorrow to do deep work (book-grounded) plus one web-based tip.",
+            "latency_ms": 93562.95350000262,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 10,
+            "question": "Is Deep Work more about discipline or environment? Give evidence from book and web.",
+            "latency_ms": 39586.33410000801,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "both",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          }
+        ],
+        "rank": 2
+      },
+      {
+        "role": "researcher",
+        "model": "gemma3:4b",
+        "model_map": {
+          "planner": "qwen3:4b",
+          "researcher": "gemma3:4b",
+          "answerer": "qwen3:4b",
+          "mailer": "qwen3:4b"
+        },
+        "question_count": 10,
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 48634.23690000475,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 17587.511500000954,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 95717.92300003767,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 14186.067200005054,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 18365.866000026464,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 14825.75520002842,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 6,
+            "question": "Compare Deep Work vs context switching research: give 2 points from the book and 2 from the web.",
+            "latency_ms": 29317.141900002956,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "both",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 7,
+            "question": "Define deep work and list 4 strategies Newport recommends, with page refs.",
+            "latency_ms": 55543.43489998579,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 8,
+            "question": "What is Tavily, and why use it for agents? One paragraph plus a source.",
+            "latency_ms": 91480.826099962,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "unknown",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 9,
+            "question": "Create a checklist I can follow tomorrow to do deep work (book-grounded) plus one web-based tip.",
+            "latency_ms": 84009.0460999906,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 10,
+            "question": "Is Deep Work more about discipline or environment? Give evidence from book and web.",
+            "latency_ms": 65308.797100007534,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "both",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          }
+        ],
+        "rank": 3
+      },
+      {
+        "role": "researcher",
+        "model": "gemma3n:e2b",
+        "model_map": {
+          "planner": "qwen3:4b",
+          "researcher": "gemma3n:e2b",
+          "answerer": "qwen3:4b",
+          "mailer": "qwen3:4b"
+        },
+        "question_count": 10,
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 58855.148049998286,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 18969.00839999318,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 71145.37950000167,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 14599.172899991274,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 14716.676400005817,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 18251.585700005293,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 6,
+            "question": "Compare Deep Work vs context switching research: give 2 points from the book and 2 from the web.",
+            "latency_ms": 53168.583499997854,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "both",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 7,
+            "question": "Define deep work and list 4 strategies Newport recommends, with page refs.",
+            "latency_ms": 108836.2501000166,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 8,
+            "question": "What is Tavily, and why use it for agents? One paragraph plus a source.",
+            "latency_ms": 119031.44220000505,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "unknown",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 9,
+            "question": "Create a checklist I can follow tomorrow to do deep work (book-grounded) plus one web-based tip.",
+            "latency_ms": 111887.43090000749,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 10,
+            "question": "Is Deep Work more about discipline or environment? Give evidence from book and web.",
+            "latency_ms": 57945.95089995861,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "both",
+              "observed_tools": [
+                "retrieve_context",
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          }
+        ],
+        "rank": 4
+      }
+    ]
+  }
+}

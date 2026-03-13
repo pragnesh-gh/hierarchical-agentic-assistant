@@ -1,0 +1,164 @@
+{
+  "generated_from": [
+    "role_benchmark_20260301_185129.json",
+    "role_benchmark_20260301_192033.json",
+    "role_benchmark_20260301_195457.json",
+    "role_benchmark_20260301_200957.json"
+  ],
+  "recommendation": {
+    "planner": {
+      "model": "qwen3:1.7b",
+      "reason": "highest guardrail score, then best latency tie-break"
+    },
+    "researcher": {
+      "model": "qwen3:4b",
+      "reason": "highest guardrail score, then best latency tie-break"
+    },
+    "answerer": {
+      "model": "qwen3:1.7b",
+      "reason": "highest guardrail score, then best latency tie-break"
+    },
+    "mailer": {
+      "model": "qwen3:1.7b",
+      "reason": "highest guardrail score, then best latency tie-break"
+    }
+  },
+  "rankings": {
+    "planner": [
+      {
+        "rank": 1,
+        "model": "qwen3:1.7b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 35344.02021000385,
+        "errors": 0
+      },
+      {
+        "rank": 2,
+        "model": "qwen3:4b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 38238.14102000594,
+        "errors": 0
+      },
+      {
+        "rank": 3,
+        "model": "gemma3:4b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 44899.52610000074,
+        "errors": 0
+      },
+      {
+        "rank": 4,
+        "model": "gemma3n:e2b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 53251.05509999693,
+        "errors": 0
+      }
+    ],
+    "researcher": [
+      {
+        "rank": 1,
+        "model": "qwen3:4b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 47923.466229996084,
+        "errors": 0
+      },
+      {
+        "rank": 2,
+        "model": "qwen3:1.7b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 48050.2285400033,
+        "errors": 0
+      },
+      {
+        "rank": 3,
+        "model": "gemma3:4b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 48634.23690000475,
+        "errors": 0
+      },
+      {
+        "rank": 4,
+        "model": "gemma3n:e2b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 58855.148049998286,
+        "errors": 0
+      }
+    ],
+    "answerer": [
+      {
+        "rank": 1,
+        "model": "qwen3:1.7b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 9835.783769997954,
+        "errors": 0
+      },
+      {
+        "rank": 2,
+        "model": "gemma3:4b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 13139.792989993095,
+        "errors": 0
+      },
+      {
+        "rank": 3,
+        "model": "gemma3n:e2b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 13177.045209997892,
+        "errors": 0
+      },
+      {
+        "rank": 4,
+        "model": "qwen3:4b",
+        "strict_pass_rate": 0.5,
+        "guardrail_avg_score": 0.9,
+        "avg_latency_ms": 50669.16391999721,
+        "errors": 0
+      }
+    ],
+    "mailer": [
+      {
+        "rank": 1,
+        "model": "qwen3:1.7b",
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 1294.5696666638057,
+        "errors": 0
+      },
+      {
+        "rank": 2,
+        "model": "gemma3:4b",
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 3385.923866669337,
+        "errors": 0
+      },
+      {
+        "rank": 3,
+        "model": "gemma3n:e2b",
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 7735.686900009711,
+        "errors": 0
+      },
+      {
+        "rank": 4,
+        "model": "qwen3:4b",
+        "strict_pass_rate": 0.6666666666666666,
+        "guardrail_avg_score": 0.6666666666666666,
+        "avg_latency_ms": 84126.66606665651,
+        "errors": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "timestamp": "2026-03-03T03:06:52.286206+00:00",
+  "base_model": "qwen3.5:4b",
+  "roles": [
+    "planner",
+    "researcher",
+    "answerer",
+    "mailer"
+  ],
+  "models_requested": [
+    "qwen3.5:4b"
+  ],
+  "models_used": [
+    "qwen3.5:4b"
+  ],
+  "models_missing": [],
+  "question_count": 2,
+  "by_role": {
+    "planner": [
+      {
+        "role": "planner",
+        "model": "qwen3.5:4b",
+        "model_map": {
+          "planner": "qwen3.5:4b",
+          "researcher": "qwen3.5:4b",
+          "answerer": "qwen3.5:4b",
+          "mailer": "qwen3.5:4b"
+        },
+        "question_count": 2,
+        "strict_pass_rate": 0.0,
+        "guardrail_avg_score": 0.0,
+        "avg_latency_ms": 17719.00575003028,
+        "errors": 2,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 17925.87040001154,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 17512.14110004902,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "researcher": [
+      {
+        "role": "researcher",
+        "model": "qwen3.5:4b",
+        "model_map": {
+          "planner": "qwen3.5:4b",
+          "researcher": "qwen3.5:4b",
+          "answerer": "qwen3.5:4b",
+          "mailer": "qwen3.5:4b"
+        },
+        "question_count": 2,
+        "strict_pass_rate": 0.0,
+        "guardrail_avg_score": 0.0,
+        "avg_latency_ms": 17562.127700001,
+        "errors": 2,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 17694.76700001955,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 17429.488399982452,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "answerer": [
+      {
+        "role": "answerer",
+        "model": "qwen3.5:4b",
+        "model_map": {
+          "planner": "qwen3.5:4b",
+          "researcher": "qwen3.5:4b",
+          "answerer": "qwen3.5:4b",
+          "mailer": "qwen3.5:4b"
+        },
+        "question_count": 2,
+        "strict_pass_rate": 0.0,
+        "guardrail_avg_score": 0.0,
+        "avg_latency_ms": 17410.911399960518,
+        "errors": 2,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 17460.445099949837,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 17361.3776999712,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "mailer": [
+      {
+        "role": "mailer",
+        "model": "qwen3.5:4b",
+        "model_map": {
+          "planner": "qwen3.5:4b",
+          "researcher": "qwen3.5:4b",
+          "answerer": "qwen3.5:4b",
+          "mailer": "qwen3.5:4b"
+        },
+        "case_count": 3,
+        "strict_pass_rate": 0.3333333333333333,
+        "guardrail_avg_score": 0.3333333333333333,
+        "avg_latency_ms": 8770.95663334926,
+        "errors": 2,
+        "records": [
+          {
+            "id": "m1",
+            "prompt": "email to dad about I will reach by 6pm",
+            "latency_ms": 9915.649100005627,
+            "pass": false,
+            "response_preview": "",
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": "m2",
+            "prompt": "email to brother about please share your notes",
+            "latency_ms": 10837.726499974728,
+            "pass": false,
+            "response_preview": "",
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": "m3",
+            "prompt": "email to alice about hello",
+            "latency_ms": 5559.494300067425,
+            "pass": true,
+            "response_preview": "Who should I email?",
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+Progress log (simple English)
+
+Checkpoints
+1) Project folder created and plan.txt added.
+2) Lab4 core copied into app/ and base paths/models updated.
+3) Rebuild pipeline added (build_index.py) and PDF copied to data/.
+4) Logging and redaction helpers added and run_cli updated.
+5) Web tool added, JSON planning rules enforced, and guardrails added.
+6) Evaluation scaffolding added (questions, rubric, eval_runner).
+7) Dependencies installed in conda env `ollama` and FAISS index rebuilt.
+8) CLI smoke test ran with smaller model overrides to avoid memory errors.
+9) Eval runner started but timed out; no results written yet.
+10) Small eval mode added to eval_runner for quicker runs.
+11) Small eval presets simplified to only qwen3:0.6b to avoid memory errors.
+12) Small eval run produced a partial results file (run timed out).
+13) Telegram bot added with /status command and logging.
+14) Planner plan repair, tool enforcement, and source citations updated.
+15) Guardrails passing for mixed/pdf/web checks in recent runs.
+16) Progress log updated and repo reviewed for resume context.
+17) Codebase refactored for quality and performance (see details below).
+
+Overall completion: 100%. System is feature-complete, refactored, and has evaluation/observability layer.
+
+Refactor details (checkpoint 17)
+- Extracted shared message helpers (latest_human_text, previous_human_text,
+  is_followup_request, effective_query) into intent_utils.py. These were
+  copy-pasted nearly identically across planner_agent.py, researcher_agent.py,
+  and answer_agent.py (~140 lines of duplication removed).
+- Fixed FAISS index loading: tools_pdf.py previously called FAISS.load_local()
+  on every single retrieve_context tool invocation. Now uses a module-level
+  lazy singleton so the index loads from disk exactly once per process.
+- Broke mailer_agent.py's 350-line god function into three named sub-handlers:
+  _handle_send_confirmation, _handle_body_stage, _handle_new_email. Also moved
+  8 JSON parsing helpers to before create_mailer so the file reads top-to-bottom.
+- Fixed duplicate state.get("plan") read in researcher_agent.py (was fetched
+  twice on consecutive lines with no mutation between them).
+- Fixed supervisor prompt: said "3-6 steps" but code allows 1-step email plans
+  (MIN_STEPS_EMAIL = 1). Prompt now correctly states "1 to 6 steps total".
+
+What each file does
+- app/config.py: Central settings for paths, model names, and chunking sizes.
+- app/state.py: Shared LangGraph state schema used by all nodes.
+- app/intent_utils.py: Shared intent detection AND message utility helpers
+  (latest_human_text, effective_query, detect_email_intent, etc.).
+- app/planner_agent.py: Planner creates a validated JSON plan and routes steps.
+- app/researcher_agent.py: Researcher calls tools and summarizes findings.
+- app/answer_agent.py: Answerer writes the final response from notes.
+- app/mailer_agent.py: Mailer drafts, edits, and sends allowlisted emails.
+- app/tools_pdf.py: PDF RAG tool using a cached FAISS index.
+- app/tools_web.py: Web search tool wrapper using Tavily.
+- app/guardrails.py: Pass/fail checks for plan and tool usage.
+- app/chat_sessions.py: Per-user multi-chat session store (persistent JSON).
+- app/contacts.py: Allowlist contact resolution with alias support.
+- app/redaction.py: Redacts sensitive data before logging/tracing.
+- app/metrics.py: Timing helpers for latency logging.
+- app/graph.py: Wires nodes and edges into a LangGraph flow.
+- app/run_cli.py: CLI entry point with logs and guardrail checks.
+- app/build_index.py: Builds the FAISS index from the PDF.
+- app/eval_runner.py: Runs the 10-question eval across model presets.
+- app/gmail_oauth.py: One-time OAuth2 token generation for Gmail sending.
+- app/memory.py: Legacy simple memory module (superseded by chat_sessions.py).
+- eval/questions.jsonl: The 10 evaluation questions.
+- eval/rubric.py: Applies guardrail checks to eval runs.
+- eval/results/: Stores eval output JSON files.
+- data/Deep_Work.pdf: The source PDF.
+- data/faiss_index/: The rebuilt vector index.
+- data/chat_sessions.json: Persistent multi-chat history for all users.
+- data/contacts_allowlist.json: Allowlisted email recipients.
+- mcp/telegram_server/bot.py: Telegram bot front-end for the agent.
+
+18) Evaluation and observability layer added (March 10, 2026).
+    Inspired by analysis of Corti's agentic framework gaps.
+
+    Changes:
+    - app/guardrails.py: added classify_failure() with 6 failure categories.
+      Maps guardrail results to one human-readable label (plan_generation_failure,
+      routing_error, tool_skip, citation_missing, source_missing, pass).
+    - app/guardrails.py: added check_groundedness() — LLM-as-judge that compares
+      the final answer against tool outputs. Returns grounded/ungrounded/partial.
+      Also added extract_tool_outputs() helper.
+    - app/state.py: added planner_reasoning (str) and groundedness_check (dict)
+      to AgentState.
+    - app/planner_agent.py: captures raw LLM output (or fast-path label) before
+      JSON parsing, stores in state["planner_reasoning"].
+    - app/config.py: added GROUNDEDNESS_MODEL, GROUNDEDNESS_NUM_CTX (1024),
+      GROUNDEDNESS_TEMPERATURE (0.1).
+    - app/graph.py: creates groundedness LLM instance. Defaults to reusing the
+      answerer model to avoid VRAM swap on low-memory hardware. Returns it
+      alongside the app from build_app().
+    - app/run_cli.py: runs groundedness check after graph completes (avoids
+      token leakage into streamed answer). Writes judge result as separate
+      JSONL trace entry. Prints verdict only for non-grounded cases.
+    - app/eval_runner.py: adds failure_mode, planner_reasoning, and
+      groundedness_check to each question result.
+    - tests/test_eval_improvements.py: 19 new tests (failure classification,
+      tool output extraction, groundedness check with edge cases).
+    - first_principle_pipeline.md: created. Explains full pipeline from first
+      principles with decision rationale.
+    - ARCHITECTURE.md: updated with evaluation/observability sections.
+
+    Design decisions:
+    - Groundedness judge runs AFTER graph (not inside answerer node) because
+      LangGraph streaming picks up judge tokens and displays them to user.
+    - Judge model defaults to answerer model to reuse VRAM. Override via
+      GROUNDEDNESS_MODEL env var on better hardware.
+    - Judge context window is 1024 (answers + tool outputs < 750 words).
+    - Failure classification uses priority ordering (plan > routing > tools > format).
+
+    All 31 tests passing. Live integration tested on PDF and conversational queries.
+
+What each file does (updated additions)
+- app/guardrails.py: Pass/fail checks + failure classification + groundedness judge.
+- tests/test_eval_improvements.py: 19 tests for failure/groundedness features.
+- first_principle_pipeline.md: Full pipeline walkthrough in plain English.
+
+Next
+- Decide whether to run a full eval on higher-memory hardware.
+- Optional: enable LangSmith tracing once API key is set.
+- Optional: retire or remove legacy memory.py (replaced by chat_sessions.py).
+- Expand eval dataset beyond 10 questions for more meaningful benchmarks.
+- Add per-node latency breakdown in traces.
+- Consider CI pipeline that runs eval_runner on each commit.

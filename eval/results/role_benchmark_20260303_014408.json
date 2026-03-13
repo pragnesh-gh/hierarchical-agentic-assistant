@@ -1,0 +1,147 @@
+{
+  "timestamp": "2026-03-03T01:44:08.998620+00:00",
+  "base_model": "qwen3.5:4b",
+  "roles": [
+    "planner"
+  ],
+  "models_requested": [
+    "qwen3.5:2b",
+    "qwen3.5:4b"
+  ],
+  "models_used": [
+    "qwen3.5:2b",
+    "qwen3.5:4b"
+  ],
+  "models_missing": [],
+  "question_count": 5,
+  "by_role": {
+    "planner": [
+      {
+        "role": "planner",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:4b",
+          "answerer": "qwen3.5:4b",
+          "mailer": "qwen3.5:4b"
+        },
+        "question_count": 5,
+        "strict_pass_rate": 0.0,
+        "guardrail_avg_score": 0.0,
+        "avg_latency_ms": 20571.914159977438,
+        "errors": 5,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 21306.901600003242,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 21299.07239997387,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 19573.325199961662,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 19125.86970001459,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 21554.401899933815,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          }
+        ],
+        "rank": 1
+      },
+      {
+        "role": "planner",
+        "model": "qwen3.5:4b",
+        "model_map": {
+          "planner": "qwen3.5:4b",
+          "researcher": "qwen3.5:4b",
+          "answerer": "qwen3.5:4b",
+          "mailer": "qwen3.5:4b"
+        },
+        "question_count": 5,
+        "strict_pass_rate": 0.0,
+        "guardrail_avg_score": 0.0,
+        "avg_latency_ms": 34479.953740000725,
+        "errors": 5,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 35294.2485999465,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 35906.013400018215,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 33288.688499987125,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 33809.99360001087,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 34100.82460004091,
+            "guardrail_checks": null,
+            "guardrail_avg_score": 0.0,
+            "strict_pass": false,
+            "error": "model runner has unexpectedly stopped, this may be due to resource limitations or an internal error, check ollama server logs for details (status code: 500)"
+          }
+        ],
+        "rank": 2
+      }
+    ]
+  }
+}

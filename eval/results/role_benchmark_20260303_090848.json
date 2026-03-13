@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-03-03T09:08:48.201931+00:00",
+  "base_model": "qwen3.5:2b",
+  "roles": [
+    "planner"
+  ],
+  "models_requested": [
+    "qwen3.5:2b"
+  ],
+  "models_used": [
+    "qwen3.5:2b"
+  ],
+  "models_missing": [],
+  "question_count": 1,
+  "by_role": {
+    "planner": [
+      {
+        "role": "planner",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "question_count": 1,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 22581.696099996567,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 22581.696099996567,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ]
+  }
+}

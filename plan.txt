@@ -1,0 +1,205 @@
+## plan.txt — hierarchical-agentic-qa (Lab4 → Lab5 extension)
+# PURPOSE: Build a clean, resume-grade project that demonstrates
+# hierarchical agent orchestration, model-per-role benchmarking, and
+# measurable evaluation signals. Be explicit and avoid assumptions.
+
+---
+
+## 0) Target outcome (one sentence)
+A hierarchical agentic QA system where a Planner emits a JSON plan, a Researcher executes tool calls (PDF RAG + Tavily web search), and an Answerer synthesizes the final output, with per-role model benchmarking and structured JSONL logs that prove which model ran where and how it behaved.
+
+---
+
+## 1) Non-negotiable constraints
+1) Readability over cleverness: explicit code, simple flow, clear logs.
+2) CPU-only: FAISS CPU + embeddings on CPU.
+3) All models are local Ollama models accessed via LangChain.
+4) Logs must clearly show which model was used at each role and step.
+5) Evaluation uses 10 fixed questions with pass/fail checks.
+6) One-role-at-a-time model comparisons (no full combinatorial grid).
+7) LangSmith tracing is OPTIONAL and must be behind a toggle.
+8) Redaction MUST be applied before ANY logging or tracing.
+9) Rebuild everything in the new project (PDF index + artifacts).
+10) Use conda env: ollama.
+
+---
+
+## 2) Repo structure (explicit)
+Create a new folder at repo root:
+- hierarchical-agentic-qa/
+  - app/
+    - config.py
+    - state.py
+    - tools_pdf.py
+    - tools_web.py
+    - planner_agent.py
+    - researcher_agent.py
+    - answer_agent.py
+    - graph.py
+    - run_cli.py
+    - redaction.py
+    - metrics.py
+    - eval_runner.py
+    - build_index.py
+  - data/
+    - Deep_Work.pdf
+    - faiss_index/
+  - eval/
+    - questions.jsonl
+    - rubric.py
+    - results/
+  - mcp/
+    - telegram_server/   (optional, Phase D)
+    - README.md
+  - .env.example
+  - .gitignore
+  - README.md
+  - plan.txt  (this file)
+  - progress.txt
+
+---
+
+## 3) Model mapping (STATIC) — Ollama names (exact)
+Baseline mapping:
+- Planner model: deepseek-r1:1.5b
+- Researcher model: qwen3:1.7b
+- Answerer model: llama3.2:3b
+
+Embeddings (CPU):
+- nomic-embed-text:latest
+- mxbai-embed-large:latest (optional alternative; default is nomic)
+
+---
+
+## 4) One-role-at-a-time benchmarking plan
+We vary ONE role at a time while keeping the other two fixed.
+
+Planner sweep:
+- deepseek-r1:1.5b → qwen3:1.7b → ministral-3:3b
+(Researcher: qwen3:1.7b, Answerer: llama3.2:3b fixed)
+
+Researcher sweep:
+- qwen3:0.6b → qwen3:1.7b
+(Planner: deepseek-r1:1.5b, Answerer: llama3.2:3b fixed)
+
+Answerer sweep:
+- llama3.2:3b → ministral-3:3b
+(Planner: deepseek-r1:1.5b, Researcher: qwen3:1.7b fixed)
+
+The eval runner must:
+- iterate through each sweep preset,
+- run the 10 questions,
+- log timing + pass/fail metrics.
+
+---
+
+## 5) Planner responsibilities (explicit)
+Planner MUST:
+- Read the user query + conversation state
+- Emit VALID JSON with a list of steps (3–6 steps)
+- Include explicit tool steps (pdf/web/both) and reasoning steps
+- Restrict actions to: "researcher", "answerer"
+- Store plan in state.plan and advance step_index
+
+JSON output format (strict):
+{
+  "steps": [
+    {"id": 0, "action": "researcher", "description": "...", "tools": ["retrieve_context"]},
+    {"id": 1, "action": "researcher", "description": "...", "tools": ["tavily_search"]},
+    {"id": 2, "action": "answerer", "description": "Synthesize answer with sources"}
+  ]
+}
+
+If JSON parsing fails, fallback to a safe default plan (researcher → answerer).
+
+---
+
+## 6) Researcher responsibilities (explicit)
+Researcher MUST:
+- Use tools based on the Planner plan
+- Call at least one tool
+- Return structured notes + citations
+- Tag each note with its source (pdf page or web URL)
+- Never produce final answer text
+
+Tools:
+- retrieve_context(query, k)
+- tavily_search(query, max_results)
+
+---
+
+## 7) Answerer responsibilities (explicit)
+Answerer MUST:
+- Use researcher notes
+- Output final answer in clean prose
+- Include a "Sources" section:
+  - PDF sources as [p.X]
+  - Web sources as URLs
+
+---
+
+## 8) Logging & evaluation (explicit)
+### 8.1 JSONL log format (single file per run)
+Each step append one JSON object with:
+- run_id
+- step_index
+- role
+- model
+- action
+- tool_calls
+- tool_results (redacted + truncated)
+- latency_ms
+- guardrail_checks (pass/fail)
+- errors (if any)
+
+### 8.2 Guardrail checks (pass/fail)
+Required:
+1) JSON plan parseable
+2) Tool called before researcher response
+3) Correct tool choice based on query type:
+   - PDF if question is about Deep Work
+   - Web if current events / recent info
+   - Both if explicitly mixed
+4) Citations included when PDF used
+5) Web sources included when web used
+
+---
+
+## 9) Redaction rules (explicit)
+Before logging or tracing:
+- Mask API keys, tokens, emails, secrets
+- Truncate tool outputs to 500 chars
+- Redaction MUST happen before LangSmith tracing too
+
+---
+
+## 10) Evaluation questions
+Use the 10 questions from the previous plan (already agreed).
+Store in eval/questions.jsonl.
+
+---
+
+## 11) CLI behavior (explicit)
+run_cli.py accepts:
+- question
+- model preset name
+- TRACE=1 optional
+
+Always write JSONL logs.
+If TRACE=1: load env and enable LangSmith tracing.
+If TRACE=0: no external traces.
+
+---
+
+## 12) Implementation phases (explicit)
+Phase A: Baseline build (planner JSON + tools + logging + rebuild FAISS index).
+Phase B: One-role-at-a-time eval runner.
+Phase C: Optional LangSmith tracing with redaction.
+Phase D: Optional MCP Telegram integration.
+
+Stop after each phase and ask the user for confirmation before continuing.
+
+---
+
+## 13) If unsure about anything
+STOP and ask the user. Do not assume.

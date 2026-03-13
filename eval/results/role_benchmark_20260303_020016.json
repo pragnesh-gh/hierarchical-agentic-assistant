@@ -1,0 +1,409 @@
+{
+  "timestamp": "2026-03-03T02:00:16.528893+00:00",
+  "base_model": "qwen3.5:2b",
+  "roles": [
+    "planner",
+    "researcher",
+    "answerer",
+    "mailer"
+  ],
+  "models_requested": [
+    "qwen3.5:2b"
+  ],
+  "models_used": [
+    "qwen3.5:2b"
+  ],
+  "models_missing": [],
+  "question_count": 5,
+  "by_role": {
+    "planner": [
+      {
+        "role": "planner",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "question_count": 5,
+        "strict_pass_rate": 0.6,
+        "guardrail_avg_score": 0.9199999999999999,
+        "avg_latency_ms": 21191.821960008143,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 21850.218599915504,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 24917.386500000954,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 19945.239300072193,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 19685.900000035763,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 19560.365400016308,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "researcher": [
+      {
+        "role": "researcher",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "question_count": 5,
+        "strict_pass_rate": 0.6,
+        "guardrail_avg_score": 0.9199999999999999,
+        "avg_latency_ms": 20785.3410599947,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 19830.080299973488,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 23593.127200067043,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 19865.446899950504,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 21350.181299984455,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 19287.869599997997,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "answerer": [
+      {
+        "role": "answerer",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "question_count": 5,
+        "strict_pass_rate": 0.6,
+        "guardrail_avg_score": 0.9199999999999999,
+        "avg_latency_ms": 20775.950340020656,
+        "errors": 0,
+        "records": [
+          {
+            "id": 1,
+            "question": "Summarize the main thesis of Deep Work and cite the page.",
+            "latency_ms": 20316.034200012684,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 2,
+            "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+            "latency_ms": 25280.124199986458,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          },
+          {
+            "id": 3,
+            "question": "What is the current time in India, and why is it that offset?",
+            "latency_ms": 21006.665000081062,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 4,
+            "question": "Find the latest India vs South Africa T20 result and give the score plus date.",
+            "latency_ms": 17581.172900021076,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": false,
+              "expected_source": "web",
+              "observed_tools": [
+                "tavily_search"
+              ]
+            },
+            "guardrail_avg_score": 0.8,
+            "strict_pass": false,
+            "error": null
+          },
+          {
+            "id": 5,
+            "question": "From the book, what does Newport say about shallow work? Quote a short line with a page.",
+            "latency_ms": 19695.755400002003,
+            "guardrail_checks": {
+              "plan_parseable": true,
+              "tool_called_before_response": true,
+              "tool_choice_correct": true,
+              "pdf_citations_present": true,
+              "web_sources_present": true,
+              "expected_source": "pdf",
+              "observed_tools": [
+                "retrieve_context"
+              ]
+            },
+            "guardrail_avg_score": 1.0,
+            "strict_pass": true,
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ],
+    "mailer": [
+      {
+        "role": "mailer",
+        "model": "qwen3.5:2b",
+        "model_map": {
+          "planner": "qwen3.5:2b",
+          "researcher": "qwen3.5:2b",
+          "answerer": "qwen3.5:2b",
+          "mailer": "qwen3.5:2b"
+        },
+        "case_count": 3,
+        "strict_pass_rate": 1.0,
+        "guardrail_avg_score": 1.0,
+        "avg_latency_ms": 9422.586299975714,
+        "errors": 0,
+        "records": [
+          {
+            "id": "m1",
+            "prompt": "email to dad about I will reach by 6pm",
+            "latency_ms": 12148.981199920177,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praveen <praveen-kumarp@outlook.com>\nSubject: Meeting Confirmation\nTone: formal conversational\nBody:\nHello Praveen!\n\nI will reach you by 6pm.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m2",
+            "prompt": "email to brother about please share your notes",
+            "latency_ms": 10461.380400002003,
+            "pass": true,
+            "response_preview": "Confirm send?\nTo: Praket <ppkinhome@gmail.com>\nSubject: Share Your Notes\nTone: formal conversational\nBody:\nHello Praket!\n\nPlease share your notes.\n\nThank you\nPragnesh Kumar\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot.\nReply yes/no.",
+            "error": null
+          },
+          {
+            "id": "m3",
+            "prompt": "email to alice about hello",
+            "latency_ms": 5657.397300004959,
+            "pass": true,
+            "response_preview": "Who should I email?",
+            "error": null
+          }
+        ],
+        "rank": 1
+      }
+    ]
+  }
+}

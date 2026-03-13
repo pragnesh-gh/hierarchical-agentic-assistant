@@ -1,0 +1,68 @@
+{
+  "timestamp": "2026-03-01T18:30:13.408628+00:00",
+  "mode": "smoke",
+  "question_count": 3,
+  "presets": [
+    {
+      "name": "baseline_all_qwen3_4b",
+      "model_map": {
+        "planner": "qwen3:4b",
+        "researcher": "qwen3:4b",
+        "answerer": "qwen3:4b"
+      },
+      "questions": [
+        {
+          "id": 1,
+          "question": "Summarize the main thesis of Deep Work and cite the page.",
+          "latency_ms": 15531.419899970293,
+          "guardrail_checks": {
+            "plan_parseable": true,
+            "tool_called_before_response": true,
+            "tool_choice_correct": true,
+            "pdf_citations_present": true,
+            "web_sources_present": true,
+            "expected_source": "pdf",
+            "observed_tools": [
+              "retrieve_context"
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": 2,
+          "question": "Give me 3 rules from Deep Work plus one example for each, with page refs.",
+          "latency_ms": 70778.25789996982,
+          "guardrail_checks": {
+            "plan_parseable": true,
+            "tool_called_before_response": true,
+            "tool_choice_correct": true,
+            "pdf_citations_present": true,
+            "web_sources_present": true,
+            "expected_source": "pdf",
+            "observed_tools": [
+              "retrieve_context"
+            ]
+          },
+          "error": null
+        },
+        {
+          "id": 3,
+          "question": "What is the current time in India, and why is it that offset?",
+          "latency_ms": 25257.26869997382,
+          "guardrail_checks": {
+            "plan_parseable": true,
+            "tool_called_before_response": true,
+            "tool_choice_correct": true,
+            "pdf_citations_present": true,
+            "web_sources_present": false,
+            "expected_source": "web",
+            "observed_tools": [
+              "tavily_search"
+            ]
+          },
+          "error": null
+        }
+      ]
+    }
+  ]
+}
