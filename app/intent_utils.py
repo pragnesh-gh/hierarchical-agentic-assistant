@@ -3,6 +3,8 @@
 import re
 from typing import List, TYPE_CHECKING
 
+from vocabulary import CONVERSATIONAL_STARTS
+
 if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage
 
@@ -66,13 +68,7 @@ def compact_conversation(
 
 # Patterns used to detect conversational / greeting messages so they are
 # never silently merged with a previous research query.
-_CONVERSATIONAL_STARTS = (
-    "hello", "hi", "hey", "good morning", "good afternoon", "good evening",
-    "good night", "howdy", "greetings", "what's up", "whats up",
-    "thanks", "thank you", "how are you", "what can you do",
-    "who are you", "what are you",
-    "yes", "no", "y", "n",
-)
+_CONVERSATIONAL_STARTS = CONVERSATIONAL_STARTS
 
 
 def _is_conversational_message(text: str) -> bool:

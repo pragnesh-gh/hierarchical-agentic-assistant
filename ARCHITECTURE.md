@@ -35,12 +35,18 @@ Responsibilities:
 - enforce route safety (for example draft confirmation routing)
 - capture raw LLM reasoning before JSON parsing (stored as `planner_reasoning`)
 
+The supervisor entry point is a ~40-line orchestrator that delegates to 4 focused helpers:
+- `_resolve_intent_and_state()` — classifies intent, applies state mutations (retry/reset/email)
+- `_handle_active_draft()` — handles draft fast-paths (confirm/edit/research+send), returns early or defers
+- `_generate_plan()` — generates plan via fast-path or LLM with repair/validate/fallback chain
+- `_route_next_step()` — advances step pointer, returns (next_action, next_index)
+
 Output:
 - `plan`
 - `step_index`
 - `next`
 - `turn_intent`
-- `planner_reasoning` (new: raw LLM output or fast-path label for trace analysis)
+- `planner_reasoning` (raw LLM output or fast-path label for trace analysis)
 
 Planning modes:
 - **Fast-path**: for high-confidence intents (conversational, clear pdf/web, email). Skips LLM entirely. Logged as `[fast-path] source=pdf` etc.
@@ -85,14 +91,22 @@ Core runtime state (`state.py`):
 - `plan`
 - `step_index`
 - `next`
-- `draft`
-- `flags`
-- `task_state`
+- `draft` — typed as `DraftState` (TypedDict)
+- `flags` — typed as `FlagState` (TypedDict)
+- `task_state` — typed as `TaskState` (TypedDict, contains `EmailFrame`, `LastAnswer`, `RejectedAnswer`)
 - `memory_context`
 - `memory_backend`
 - `turn_intent`
-- `planner_reasoning` (new: raw planner output for trace analysis)
-- `groundedness_check` (new: judge result dict)
+- `planner_reasoning` (raw planner output for trace analysis)
+- `groundedness_check` (judge result dict)
+
+TypedDicts in `state.py` enforce schema contracts:
+- `EmailFrame` — stage, recipient, topic, body, pending_confirmation
+- `LastAnswer` — text, sources, accepted
+- `RejectedAnswer` — text, reason
+- `TaskState` — active_task, email_frame, last_answer, rejected_answers, last_contact, preferences
+- `DraftState` — stage, recipient, topic, body, pending, pending_confirmation
+- `FlagState` — followup_reset
 
 Persistent per-user/per-chat state (`chat_sessions.py`):
 - active chat id
@@ -101,6 +115,8 @@ Persistent per-user/per-chat state (`chat_sessions.py`):
 - draft state
 - flags
 - task_state
+
+Session I/O uses `SessionCache` — a context manager that loads once and saves once per turn, with `threading.Lock` for concurrent access safety. This replaced the previous pattern of load/save on every public function call.
 
 ## 4. Session and Chat Lifecycle
 
@@ -235,7 +251,18 @@ The groundedness judge writes a separate final entry with `role: "groundedness_j
 - Each question result includes: `guardrail_checks`, `failure_mode`, `planner_reasoning`, `groundedness_check`, `latency_ms`
 - Results stored in `eval/results/` as timestamped JSON files
 
+### Vocabulary (`vocabulary.py`)
+Single source of truth for all intent detection markers used across modules:
+- `SUMMARY_MARKERS` — phrases indicating "send this/previous answer"
+- `DEICTIC_RE` — regex for deictic references ("this", "that", "it")
+- `FRESHNESS_HINTS` — keywords indicating need for live/recent data
+- `WEB_HINTS` — keywords indicating web search needed
+- `CONVERSATIONAL_STARTS` — greetings and small talk patterns
+
+Consumers: `mailer_agent.py`, `turn_controller.py`, `graph_memory.py`, `intent_utils.py`, `guardrails.py`, `planner_agent.py`
+
 ### Unit tests (`tests/`)
+- `test_repair_plan.py`: 51 tests across 8 classes covering all plan repair invariants (10 invariants asserted per repair)
 - `test_eval_improvements.py`: failure classification (8 cases), tool output extraction (3 cases), groundedness check (8 cases including error handling)
 - `test_graph_memory.py`: fact retrieval, user isolation, trimming, cross-chat scope
 - `test_chat_intel.py`: topic shift detection

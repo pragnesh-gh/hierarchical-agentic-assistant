@@ -22,6 +22,8 @@ from chat_sessions import (
 from config import ASYNC_TIMEOUT_EMAIL_SEC
 from identity import load_identity_text
 from intent_utils import is_no_email_only, parse_confirmation_intent
+from state import DraftState, TaskState
+from vocabulary import SUMMARY_MARKERS
 
 
 DEFAULT_TONE = "formal conversational"
@@ -29,21 +31,6 @@ DEFAULT_SIGNATURE_NAME = "Pragnesh Kumar"
 AI_FOOTER = "\n\n---\nThis is an AI automated email sent by hierarchical_qa_bot."
 ASSISTANT_IDENTITY_LINE = "I am Arjun, Pragnesh's AI assistant."
 EMAIL_IN_TEXT_RE = re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b")
-SUMMARY_MARKERS = (
-    "summary",
-    "summarize",
-    "summarise",
-    "what we discussed",
-    "discussed",
-    "this information",
-    "same information",
-    "same info",
-    "same answer",
-    "send this",
-    "send it",
-    "that information",
-    "that answer",
-)
 
 
 # ---------------------------------------------------------------------------
@@ -488,7 +475,7 @@ def _compose_fact_transfer_content(facts: List[str], user_text: str) -> str:
     return "\n".join(lines).strip()
 
 
-def _collect_fact_bundle(messages: List[Any], task_state: Dict[str, Any], memory_context: str, user_text: str) -> List[str]:
+def _collect_fact_bundle(messages: List[Any], task_state: TaskState, memory_context: str, user_text: str) -> List[str]:
     # Merge candidate facts from short-term chat + task snapshot + long-term memory.
     # This lets "send this information" resolve to concrete content.
     candidates: List[str] = []
@@ -588,7 +575,7 @@ def _latest_non_debug_ai_text(messages: List[Any]) -> str:
     return ""
 
 
-def _task_last_answer_text(task_state: Dict[str, Any]) -> str:
+def _task_last_answer_text(task_state: TaskState) -> str:
     if not isinstance(task_state, dict):
         return ""
     last_answer = task_state.get("last_answer", {})
@@ -961,7 +948,7 @@ Research context:
 # ---------------------------------------------------------------------------
 
 def _handle_send_confirmation(
-    draft: Dict[str, Any],
+    draft: DraftState,
     user_text: str,
     user_key: str,
     chat_id: str,
@@ -1085,7 +1072,7 @@ def _handle_send_confirmation(
 
 
 def _handle_body_stage(
-    draft: Dict[str, Any],
+    draft: DraftState,
     messages: List[Any],
     user_text: str,
     user_key: str,
@@ -1163,7 +1150,7 @@ def _handle_body_stage(
 
 
 def _handle_recipient_stage(
-    draft: Dict[str, Any],
+    draft: DraftState,
     messages: List[Any],
     user_text: str,
     user_key: str,
@@ -1174,7 +1161,7 @@ def _handle_recipient_stage(
     signature_name: str,
     sources_lines: List[str],
     sources_block_text: str,
-    task_state: Dict[str, Any],
+    task_state: TaskState,
     memory_context: str,
 ) -> Dict[str, Any]:
     """Handle the case where we know body/topic but still need recipient."""
@@ -1279,7 +1266,7 @@ def _handle_new_email(
     signature_name: str,
     sources_lines: List[str],
     sources_block_text: str,
-    task_state: Dict[str, Any],
+    task_state: TaskState,
     memory_context: str,
 ) -> Dict[str, Any]:
     """Handle a brand-new email request with no existing draft.

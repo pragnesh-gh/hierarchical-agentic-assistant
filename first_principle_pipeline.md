@@ -63,7 +63,7 @@ agents read and write during one turn. Defined in `state.py`.
 
 ### Step 2: The Planner Decides What To Do
 
-**Where:** `planner_agent.py`, the `supervisor()` function
+**Where:** `planner_agent.py`, the `supervisor()` orchestrator (delegates to `_resolve_intent_and_state()`, `_handle_active_draft()`, `_generate_plan()`, `_route_next_step()`)
 
 The planner's job is to look at your question and produce a plan — a list
 of steps like:
@@ -418,17 +418,18 @@ into the JSONL trace (and optionally prints a one-line summary for non-grounded 
 ```
 app/
   config.py              Settings: paths, model names, context windows, timeouts
-  state.py               AgentState TypedDict shared by all nodes
+  state.py               AgentState + 6 TypedDicts (TaskState, DraftState, etc.)
   graph.py               Wires nodes + edges into LangGraph. Creates groundedness LLM.
-  planner_agent.py       Supervisor: intent classification, plan generation, routing
+  planner_agent.py       Supervisor orchestrator + 4 focused helpers
   researcher_agent.py    Tool caller: PDF retrieval, web search (parallel)
   answer_agent.py        Final answer synthesis with source extraction
   mailer_agent.py        Email draft/edit/send with confirmation flow
   guardrails.py          Pass/fail checks + failure classification + groundedness judge
+  vocabulary.py          Single source of truth for intent markers (5 constant sets)
   intent_utils.py        Shared helpers: effective_query, detect_email_intent, etc.
   turn_controller.py     Turn-level intent classification
-  chat_sessions.py       Per-user multi-chat session persistence
-  graph_memory.py        Long-term memory (Graphiti or local JSON fallback)
+  chat_sessions.py       SessionCache context manager + threading lock
+  graph_memory.py        Long-term memory with logging at all fallback paths
   chat_intel.py          Topic shift detection heuristic
   tools_pdf.py           FAISS-backed PDF retrieval (cached singleton)
   tools_web.py           Tavily web search wrapper
@@ -448,6 +449,7 @@ eval/
   results/               Timestamped eval JSON files
 
 tests/
+  test_repair_plan.py          Plan repair invariants (51 tests, 10 invariants)
   test_eval_improvements.py    Failure classification + groundedness (19 tests)
   test_graph_memory.py         Memory retrieval scope and scoring (7 tests)
   test_chat_intel.py           Topic shift detection (2 tests)

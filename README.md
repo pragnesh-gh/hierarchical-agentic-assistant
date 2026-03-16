@@ -34,21 +34,32 @@ For the full pipeline explained from first principles, see [first_principle_pipe
 ```text
 app/
   config.py
-  state.py
+  state.py                    # AgentState + TypedDicts (TaskState, DraftState, etc.)
   graph.py
-  planner_agent.py
+  planner_agent.py            # supervisor orchestrator + 4 focused helpers
   researcher_agent.py
   answer_agent.py
   mailer_agent.py
-  chat_sessions.py
-  graph_memory.py
+  chat_sessions.py            # SessionCache context manager + threading lock
+  graph_memory.py             # logging at all fallback transitions
+  vocabulary.py               # single source of truth for intent markers
   chat_intel.py
+  intent_utils.py
+  turn_controller.py
+  guardrails.py
   tools_pdf.py
   tools_web.py
   tools_email.py
   run_cli.py
 mcp/telegram_server/
   bot.py
+tests/
+  test_repair_plan.py         # 51 tests for plan repair invariants
+  test_eval_improvements.py
+  test_graph_memory.py
+  test_chat_intel.py
+  test_chat_sessions_features.py
+  test_mailer_features.py
 data/
   Deep_Work.pdf               # local source document, gitignored
   faiss_index/                # local generated index, gitignored
@@ -142,7 +153,7 @@ Important toggles:
 - `GRAPHITI_URI`, `GRAPHITI_USER`, `GRAPHITI_PASSWORD` (optional Graphiti backend)
 
 ## Evaluation
-Run all tests (31 tests including evaluation/observability):
+Run all tests (98 tests including evaluation, observability, and plan repair invariants):
 ```bash
 python -m pytest tests/ -v
 ```

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import re
 import secrets
 import threading
@@ -23,7 +24,10 @@ from config import (
     GRAPH_MEMORY_PATH,
     GRAPH_MEMORY_TOP_K,
 )
+from vocabulary import DEICTIC_RE
 
+
+logger = logging.getLogger(__name__)
 
 _STOPWORDS = {
     "a",
@@ -79,11 +83,7 @@ _DATE_RE = re.compile(
     r"\d{4})\b",
     flags=re.IGNORECASE,
 )
-_DEICTIC_RE = re.compile(
-    r"\b(?:same (?:information|info|answer)|send this|send it|forward this|forward it|"
-    r"share this|share it|that information|that answer|this information|this answer)\b",
-    flags=re.IGNORECASE,
-)
+_DEICTIC_RE = DEICTIC_RE
 _EMAIL_INTENT_RE = re.compile(
     r"\b(?:email|mail|send|forward|share)\b",
     flags=re.IGNORECASE,
@@ -627,17 +627,24 @@ class GraphMemoryService:
     def _build_backend(self) -> _MemoryBackend:
         # Auto mode prefers Graphiti and degrades to local-json on failure.
         if not GRAPH_MEMORY_ENABLED:
+            logger.info("Graph memory: disabled")
             return _NullBackend()
 
         backend = (GRAPH_MEMORY_BACKEND or "auto").strip().lower()
         if backend in {"graphiti", "auto"}:
             try:
-                return _GraphitiBackend(GRAPHITI_URI, GRAPHITI_USER, GRAPHITI_PASSWORD)
-            except Exception:
+                result = _GraphitiBackend(GRAPHITI_URI, GRAPHITI_USER, GRAPHITI_PASSWORD)
+                logger.info("Graph memory: using Graphiti backend")
+                return result
+            except Exception as exc:
                 if backend == "graphiti":
+                    logger.warning("Graph memory: Graphiti backend requested but unavailable, falling back to local JSON — %s", exc)
                     return self._fallback
+                logger.warning("Graph memory: Graphiti unavailable, falling back to local JSON — %s", exc)
         if backend in {"local", "json", "auto"}:
+            logger.info("Graph memory: using local JSON backend")
             return self._fallback
+        logger.info("Graph memory: using local JSON backend")
         return self._fallback
 
     @property
@@ -658,13 +665,15 @@ class GraphMemoryService:
             try:
                 self._backend.ingest(user_key, chat_id, human_clean, ai_clean)
                 return
-            except Exception:
+            except Exception as exc:
                 # If primary backend fails at runtime, degrade gracefully.
                 if self._backend is not self._fallback:
+                    logger.warning("Graph memory ingest failed on %s, degrading to %s — %s", self._backend.name, self._fallback.name, exc)
                     self._backend = self._fallback
                 try:
                     self._backend.ingest(user_key, chat_id, human_clean, ai_clean)
-                except Exception:
+                except Exception as exc:
+                    logger.error("Graph memory ingest failed on all backends — %s", exc)
                     return
 
     def retrieve_hits(self, user_key: str, chat_id: str, query: str, top_k: int = GRAPH_MEMORY_TOP_K) -> List[Dict[str, Any]]:
@@ -676,12 +685,14 @@ class GraphMemoryService:
         with self._lock:
             try:
                 return self._backend.retrieve(user_key, chat_id, query_clean, max(1, int(top_k)))
-            except Exception:
+            except Exception as exc:
                 if self._backend is not self._fallback:
+                    logger.warning("Graph memory retrieve failed on %s, degrading to %s — %s", self._backend.name, self._fallback.name, exc)
                     self._backend = self._fallback
                     try:
                         return self._backend.retrieve(user_key, chat_id, query_clean, max(1, int(top_k)))
-                    except Exception:
+                    except Exception as exc:
+                        logger.error("Graph memory retrieve failed on all backends — %s", exc)
                         return []
                 return []
 

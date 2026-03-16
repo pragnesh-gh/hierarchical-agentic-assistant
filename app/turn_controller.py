@@ -8,12 +8,14 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from chat_sessions import normalize_task_state
 from guardrails import classify_query_source
+from state import DraftState, TaskState
 from intent_utils import (
     compact_conversation,
     detect_email_intent,
     is_new_task_intent,
     parse_confirmation_intent,
 )
+from vocabulary import SUMMARY_MARKERS
 
 
 INTENTS = {"qa", "email", "edit_draft", "confirm_send", "retry", "reset", "smalltalk"}
@@ -63,20 +65,7 @@ def _wants_reset(text: str) -> str:
 
 def _wants_same_answer(text: str) -> bool:
     normalized = (text or "").lower()
-    markers = (
-        "same information",
-        "same info",
-        "same answer",
-        "send this",
-        "send it",
-        "share this",
-        "share it",
-        "forward this",
-        "forward it",
-        "that answer",
-        "that information",
-    )
-    return any(m in normalized for m in markers)
+    return any(m in normalized for m in SUMMARY_MARKERS)
 
 
 def _looks_like_edit(text: str) -> bool:
@@ -115,7 +104,7 @@ def _parse_json_payload(text: str) -> Dict[str, Any]:
     return data
 
 
-def _heuristic_control(latest_user: str, draft: Dict[str, Any], task_state: Dict[str, Any]) -> Dict[str, Any]:
+def _heuristic_control(latest_user: str, draft: DraftState, task_state: TaskState) -> Dict[str, Any]:
     # Fast local classifier first: cheap, deterministic, and robust for obvious cases.
     # LLM classification later refines this, but these guards protect critical actions
     # (reset/retry/confirm_send) from prompt or parsing variance.
@@ -221,8 +210,8 @@ def classify_turn(
     llm: Any,
     latest_user: str,
     messages: list,
-    draft: Dict[str, Any],
-    task_state: Dict[str, Any],
+    draft: DraftState,
+    task_state: TaskState,
 ) -> Dict[str, Any]:
     """Return normalized control JSON for planner routing.
 

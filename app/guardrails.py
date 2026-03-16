@@ -4,18 +4,13 @@ import json
 import re
 from typing import Any, Dict, List
 
+from vocabulary import CONVERSATIONAL_STARTS
+
 
 def _is_conversational_query(normalized: str) -> bool:
     """Detect greeting/small-talk queries that should not trigger tools."""
     stripped = normalized.rstrip("!?., ")
-    conversational_patterns = [
-        "hello", "hi", "hey", "good morning", "good afternoon", "good evening",
-        "good night", "howdy", "greetings", "what's up", "whats up",
-        "thanks", "thank you", "ok", "okay", "got it", "sure", "alright",
-        "yes", "no", "y", "n",
-        "what can you do", "help me", "who are you", "what are you",
-        "how are you",
-    ]
+    conversational_patterns = CONVERSATIONAL_STARTS
     if stripped in conversational_patterns or any(
         normalized.startswith(p) and len(normalized) < len(p) + 15
         for p in conversational_patterns

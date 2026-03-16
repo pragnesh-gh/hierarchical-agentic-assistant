@@ -4,6 +4,7 @@ import json
 import time
 import secrets
 import re
+import threading
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -17,13 +18,43 @@ from langchain_core.messages import (
 )
 
 from config import DATA_DIR
+from state import TaskState, EmailFrame, LastAnswer, DraftState, FlagState
 
 
 SESSIONS_PATH = DATA_DIR / "chat_sessions.json"
 MAX_TURNS = 20
 
+_cache_local = threading.local()
+_file_lock = threading.Lock()
 
-def _default_task_state() -> Dict[str, Any]:
+
+class SessionCache:
+    """Context manager for batching session I/O within a single turn."""
+
+    def __init__(self):
+        self._data = None
+        self._dirty = False
+
+    def __enter__(self):
+        _cache_local.cache = self
+        self._data = _load_sessions_raw()
+        self._dirty = False
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._dirty and self._data is not None:
+            _save_sessions_raw(self._data)
+        _cache_local.cache = None
+        return False
+
+    def get_data(self):
+        return self._data
+
+    def mark_dirty(self):
+        self._dirty = True
+
+
+def _default_task_state() -> TaskState:
     # Canonical per-chat task memory schema; all runtime writes normalize to this shape.
     return {
         "active_task": "",
@@ -45,7 +76,7 @@ def _default_task_state() -> Dict[str, Any]:
     }
 
 
-def _normalize_task_state(task_state: Any) -> Dict[str, Any]:
+def _normalize_task_state(task_state: Any) -> TaskState:
     base = _default_task_state()
     if not isinstance(task_state, dict):
         return base
@@ -136,25 +167,42 @@ def _ensure_chat_meta_defaults(chat: Dict[str, Any]) -> None:
     chat.setdefault("pinned", False)
 
 
-def _load_sessions() -> Dict[str, Any]:
-    if not SESSIONS_PATH.exists():
-        return {"users": {}}
-    with open(SESSIONS_PATH, "r", encoding="utf-8") as f:
-        try:
-            data = json.load(f)
-        except json.JSONDecodeError:
+def _load_sessions_raw() -> Dict[str, Any]:
+    with _file_lock:
+        if not SESSIONS_PATH.exists():
             return {"users": {}}
-    if not isinstance(data, dict):
-        return {"users": {}}
-    if "users" not in data or not isinstance(data["users"], dict):
-        data["users"] = {}
-    return data
+        with open(SESSIONS_PATH, "r", encoding="utf-8") as f:
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError:
+                return {"users": {}}
+        if not isinstance(data, dict):
+            return {"users": {}}
+        if "users" not in data or not isinstance(data["users"], dict):
+            data["users"] = {}
+        return data
+
+
+def _save_sessions_raw(data: Dict[str, Any]) -> None:
+    SESSIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with _file_lock:
+        with open(SESSIONS_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _load_sessions() -> Dict[str, Any]:
+    cache = getattr(_cache_local, 'cache', None)
+    if cache is not None:
+        return cache.get_data()
+    return _load_sessions_raw()
 
 
 def _save_sessions(data: Dict[str, Any]) -> None:
-    SESSIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(SESSIONS_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    cache = getattr(_cache_local, 'cache', None)
+    if cache is not None:
+        cache.mark_dirty()
+        return
+    _save_sessions_raw(data)
 
 
 def _new_chat_id() -> str:
@@ -339,7 +387,7 @@ def save_messages(user_key: str, chat_id: str, messages: List[BaseMessage], prev
     _save_sessions(data)
 
 
-def get_draft(user_key: str, chat_id: str) -> Dict[str, Any]:
+def get_draft(user_key: str, chat_id: str) -> DraftState:
     data = _load_sessions()
     user = _get_user(data, user_key)
     state = user.get("states", {}).get(chat_id, {})
@@ -347,7 +395,7 @@ def get_draft(user_key: str, chat_id: str) -> Dict[str, Any]:
     return draft if isinstance(draft, dict) else {}
 
 
-def set_draft(user_key: str, chat_id: str, draft: Dict[str, Any]) -> None:
+def set_draft(user_key: str, chat_id: str, draft: DraftState) -> None:
     data = _load_sessions()
     user = _get_user(data, user_key)
     state = user.get("states", {}).setdefault(chat_id, {})
@@ -365,7 +413,7 @@ def clear_draft(user_key: str, chat_id: str) -> None:
     _save_sessions(data)
 
 
-def get_task_state(user_key: str, chat_id: str) -> Dict[str, Any]:
+def get_task_state(user_key: str, chat_id: str) -> TaskState:
     data = _load_sessions()
     user = _get_user(data, user_key)
     state = user.get("states", {}).get(chat_id, {})
@@ -378,7 +426,7 @@ def get_task_state(user_key: str, chat_id: str) -> Dict[str, Any]:
     return normalized
 
 
-def set_task_state(user_key: str, chat_id: str, task_state: Dict[str, Any]) -> None:
+def set_task_state(user_key: str, chat_id: str, task_state: TaskState) -> None:
     data = _load_sessions()
     user = _get_user(data, user_key)
     state = user.get("states", {}).setdefault(chat_id, {})
@@ -387,12 +435,12 @@ def set_task_state(user_key: str, chat_id: str, task_state: Dict[str, Any]) -> N
     _save_sessions(data)
 
 
-def normalize_task_state(task_state: Any) -> Dict[str, Any]:
+def normalize_task_state(task_state: Any) -> TaskState:
     """Public helper used by runtime nodes before persisting task state."""
     return _normalize_task_state(task_state)
 
 
-def get_flags(user_key: str, chat_id: str) -> Dict[str, Any]:
+def get_flags(user_key: str, chat_id: str) -> FlagState:
     data = _load_sessions()
     user = _get_user(data, user_key)
     state = user.get("states", {}).get(chat_id, {})
@@ -400,7 +448,7 @@ def get_flags(user_key: str, chat_id: str) -> Dict[str, Any]:
     return flags if isinstance(flags, dict) else {}
 
 
-def set_flags(user_key: str, chat_id: str, updates: Dict[str, Any]) -> None:
+def set_flags(user_key: str, chat_id: str, updates: FlagState) -> None:
     data = _load_sessions()
     user = _get_user(data, user_key)
     state = user.get("states", {}).setdefault(chat_id, {})

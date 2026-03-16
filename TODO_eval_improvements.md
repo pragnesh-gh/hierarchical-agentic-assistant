@@ -1,4 +1,4 @@
-# Evaluation & Observability Improvements — TODO
+# Evaluation & Observability Improvements — DONE (2026-03-15)
 
 ## Point 1: Failure Mode Classification
 

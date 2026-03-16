@@ -9,7 +9,7 @@ import json
 import re
 from typing import Any, Dict, List
 
-from state import AgentState
+from state import AgentState, EmailFrame
 from chat_sessions import clear_draft, normalize_task_state, set_flags
 from guardrails import classify_query_source
 from identity import load_identity_text
@@ -23,6 +23,7 @@ from intent_utils import (
     effective_query,
 )
 from turn_controller import classify_turn
+from vocabulary import FRESHNESS_HINTS, WEB_HINTS
 
 
 ALLOWED_ACTIONS = {"researcher", "answerer", "mailer"}
@@ -32,7 +33,7 @@ MIN_STEPS_EMAIL = 1
 MAX_STEPS = 6
 
 
-def _empty_email_frame() -> Dict[str, Any]:
+def _empty_email_frame() -> EmailFrame:
     return {
         "stage": "",
         "recipient": "",
@@ -69,30 +70,9 @@ def _has_recent_confirm_prompt(messages: List[BaseMessage]) -> bool:
 
 def _email_requires_research(query: str) -> bool:
     normalized = query.lower()
-    freshness_hints = [
-        "weather",
-        "time",
-        "news",
-        "current",
-        "today",
-        "latest",
-        "score",
-        "stocks",
-        "price",
-        "current affairs",
-    ]
-    web_hints = [
-        "web",
-        "internet",
-        "online",
-        "website",
-        "websites",
-        "search online",
-        "look it up",
-    ]
-    if any(h in normalized for h in freshness_hints):
+    if any(h in normalized for h in FRESHNESS_HINTS):
         return True
-    if any(h in normalized for h in web_hints):
+    if any(h in normalized for h in WEB_HINTS):
         return True
     # A bare year often appears in event reminders and should not force web.
     if "use the web" in normalized or "use the internet" in normalized:
@@ -408,23 +388,261 @@ def _validate_plan(plan: Any, query: str, email_hint: bool = False) -> bool:
     return True
 
 
+def _resolve_intent_and_state(
+    llm,
+    latest_user_text: str,
+    messages: List[BaseMessage],
+    draft: Dict[str, Any],
+    task_state: Dict[str, Any],
+    user_key,
+    chat_id,
+    followup_reset: bool,
+) -> Dict[str, Any]:
+    """Classify intent and apply state mutations (retry, reset, email, etc.).
+
+    Returns a dict with keys: turn_intent, reset_scope, use_last_answer,
+    skip_followup, has_active_draft, task_state, draft.
+    """
+    control = classify_turn(llm, latest_user_text, messages, draft, task_state)
+    turn_intent = str(control.get("intent", "qa")).strip().lower()
+    reset_scope = str(control.get("reset_scope", "none")).strip().lower()
+    use_last_answer = bool(control.get("use_last_answer", False))
+
+    no_email_intent = detect_no_email_intent(latest_user_text)
+    new_task_intent = is_new_task_intent(latest_user_text)
+    skip_followup = followup_reset or no_email_intent or new_task_intent
+
+    has_active_draft = isinstance(draft, dict) and bool(draft.get("pending") or draft.get("stage"))
+    if has_active_draft and _is_draft_update_request(latest_user_text):
+        turn_intent = "edit_draft"
+        task_state["active_task"] = "email"
+
+    if turn_intent in {"email", "edit_draft", "confirm_send"}:
+        skip_followup = True
+
+    if turn_intent in {"retry", "reset"}:
+        skip_followup = True
+
+    if turn_intent == "retry":
+        last_answer_text = str(task_state.get("last_answer", {}).get("text", "")).strip()
+        if last_answer_text:
+            rejected = task_state.get("rejected_answers", [])
+            if not isinstance(rejected, list):
+                rejected = []
+            rejected.append({"text": last_answer_text[:1800], "reason": "retry"})
+            task_state["rejected_answers"] = rejected[-10:]
+        task_state["last_answer"] = {"text": "", "sources": [], "accepted": False}
+        task_state["active_task"] = "qa"
+
+    if turn_intent == "reset":
+        task_state["active_task"] = ""
+        task_state["email_frame"] = _empty_email_frame()
+        if reset_scope == "chat_soft_reset":
+            task_state["last_answer"] = {"text": "", "sources": [], "accepted": True}
+            task_state["rejected_answers"] = []
+            task_state["last_contact"] = ""
+        if user_key and chat_id:
+            clear_draft(user_key, chat_id)
+        draft = {}
+
+    if turn_intent in {"email", "edit_draft", "confirm_send"}:
+        task_state["active_task"] = "email"
+        if use_last_answer:
+            last_answer_text = str(task_state.get("last_answer", {}).get("text", "")).strip()
+            if last_answer_text:
+                email_frame = task_state.get("email_frame", _empty_email_frame())
+                if not isinstance(email_frame, dict):
+                    email_frame = _empty_email_frame()
+                if not str(email_frame.get("body", "")).strip():
+                    email_frame["body"] = last_answer_text[:1200]
+                task_state["email_frame"] = email_frame
+    elif turn_intent == "smalltalk":
+        task_state["active_task"] = "smalltalk"
+    else:
+        task_state["active_task"] = "qa"
+
+    return {
+        "turn_intent": turn_intent,
+        "reset_scope": reset_scope,
+        "use_last_answer": use_last_answer,
+        "skip_followup": skip_followup,
+        "has_active_draft": has_active_draft,
+        "task_state": task_state,
+        "draft": draft,
+    }
+
+
+def _handle_active_draft(
+    state: AgentState,
+    latest_user_text: str,
+    messages: List[BaseMessage],
+    turn_intent: str,
+    task_state: Dict[str, Any],
+    has_active_draft: bool,
+    step_index: int,
+):
+    """Handle draft fast-paths when a draft is active.
+
+    Returns (early_return_dict, defer_draft, email_hint) where early_return_dict
+    is a complete AgentState response if we should return early, or None.
+    """
+    if step_index >= 0 or not has_active_draft:
+        email_hint = turn_intent in {"email", "edit_draft", "confirm_send"}
+        return None, False, email_hint
+
+    if turn_intent == "confirm_send" and _is_confirmation_response(latest_user_text):
+        if _has_recent_confirm_prompt(messages):
+            debug_msg = AIMessage(content="[Planner] Draft pending, routing to mailer.")
+            return {
+                "next": "mailer",
+                "plan": state.get("plan", []),
+                "step_index": state.get("step_index", -1),
+                "messages": [debug_msg],
+                "task_state": task_state,
+                "turn_intent": turn_intent,
+                "planner_reasoning": "[fast-path] draft_pending_confirmation",
+            }, False, False
+        return None, True, False
+
+    if turn_intent in {"email", "edit_draft"}:
+        if _email_requires_research(latest_user_text):
+            plan = [
+                {
+                    "id": 0,
+                    "action": "researcher",
+                    "description": "Use web search for up-to-date context.",
+                    "tools": ["tavily_search"],
+                },
+                {
+                    "id": 1,
+                    "action": "mailer",
+                    "description": "Update and confirm the email draft.",
+                },
+            ]
+            debug_msg = AIMessage(
+                content="[Planner] Draft pending; routing via researcher then mailer."
+            )
+            return {
+                "next": "researcher",
+                "plan": plan,
+                "step_index": 0,
+                "messages": [debug_msg],
+                "task_state": task_state,
+                "turn_intent": turn_intent,
+                "planner_reasoning": "[fast-path] draft_update_with_research",
+            }, False, False
+        debug_msg = AIMessage(content="[Planner] Draft pending, routing to mailer.")
+        return {
+            "next": "mailer",
+            "plan": state.get("plan", []),
+            "step_index": state.get("step_index", -1),
+            "messages": [debug_msg],
+            "task_state": task_state,
+            "turn_intent": turn_intent,
+            "planner_reasoning": "[fast-path] draft_pending_to_mailer",
+        }, False, False
+
+    return None, True, False
+
+
+def _generate_plan(
+    llm,
+    prompt,
+    identity_text: str,
+    user_query: str,
+    turn_intent: str,
+    use_last_answer: bool,
+    email_hint: bool,
+    memory_context: str,
+    messages: List[BaseMessage],
+) -> tuple:
+    """Generate or select a plan for the current query.
+
+    Returns (plan, planner_reasoning_raw, state_messages).
+    """
+    source_guess = classify_query_source(user_query)
+    control_hint = f"intent={turn_intent}; use_last_answer={use_last_answer}"
+
+    # Fast-path high-confidence routing to reduce planner latency.
+    if turn_intent == "smalltalk" or source_guess == "conversational":
+        plan = [{"id": 0, "action": "answerer", "description": "Respond directly."}]
+        return plan, "[fast-path] conversational/smalltalk detected", []
+
+    if turn_intent in {"email", "edit_draft", "confirm_send"} or _detect_email_intent(user_query, email_hint):
+        plan = _fallback_plan_for_query(user_query, email_hint=True)
+        return plan, "[fast-path] email intent detected", []
+
+    if source_guess in {"pdf", "web", "both"}:
+        plan = _fallback_plan_for_query(user_query, email_hint=False)
+        return plan, f"[fast-path] source={source_guess}", []
+
+    # Ambiguous query: ask planner LLM.
+    chain = prompt | llm | StrOutputParser()
+    raw_plan = chain.invoke(
+        {
+            "identity": identity_text,
+            "query": user_query,
+            "control_hint": control_hint,
+            "memory_context": memory_context,
+            "messages": compact_conversation(messages),
+        }
+    )
+
+    try:
+        raw_text = raw_plan.strip()
+        if raw_text.startswith("{") and raw_text.endswith("}"):
+            plan_obj = json.loads(raw_text)
+        else:
+            start = raw_text.find("{")
+            end = raw_text.rfind("}")
+            plan_obj = json.loads(raw_text[start : end + 1])
+        steps = plan_obj.get("steps", [])
+        repaired = _repair_plan(steps, user_query, email_hint)
+        if _validate_plan(repaired, user_query, email_hint):
+            return repaired, raw_plan, []
+        plan = _fallback_plan_for_query(
+            user_query,
+            email_hint=turn_intent in {"email", "edit_draft", "confirm_send"} or email_hint,
+        )
+        debug_msg = AIMessage(
+            content=(
+                "[Planner] Invalid JSON plan structure, using fallback. "
+                f"Raw: {raw_plan}"
+            )
+        )
+        return plan, raw_plan, [debug_msg]
+    except Exception as e:
+        plan = _fallback_plan_for_query(
+            user_query,
+            email_hint=turn_intent in {"email", "edit_draft", "confirm_send"} or email_hint,
+        )
+        debug_msg = AIMessage(
+            content=(
+                "[Planner] Failed to parse JSON plan, using fallback. "
+                f"Error: {e}. Raw: {raw_plan}"
+            )
+        )
+        return plan, raw_plan, [debug_msg]
+
+
+def _route_next_step(plan: List[Dict[str, Any]], step_index: int) -> tuple:
+    """Advance step pointer and return (next_action, next_index)."""
+    next_index = step_index + 1
+    if next_index >= len(plan):
+        return "FINISH", next_index
+
+    step = plan[next_index]
+    action = str(step.get("action", "")).lower().strip()
+    if action not in ("researcher", "answerer", "mailer"):
+        action = "answerer" if next_index == len(plan) - 1 else "researcher"
+    return action, next_index
+
+
 def create_supervisor(llm):
-    """
-    Planner + supervisor.
-
-    1) On first call:
-       - Generates a JSON plan (list of steps: researcher/answerer).
-       - Stores it in AgentState.plan with step_index = -1.
-
-    2) On every call:
-       - Increments step_index.
-       - Routes to the action for that step: "researcher" or "answerer".
-       - When out of steps, returns FINISH.
-    """
+    """Planner + supervisor: classifies intent, generates plans, routes steps."""
 
     identity_text = load_identity_text()
 
-    # Prompt: ask explicitly for a JSON object with a "steps" list
     prompt = ChatPromptTemplate.from_template(
         """/no_think
 Create a minimal execution plan as JSON.
@@ -465,7 +683,6 @@ Recent conversation:
 
     def supervisor(state: AgentState) -> AgentState:
         """Create or advance a validated JSON plan and route the next step."""
-        # Always present: first message is the original user question
         messages = state.get("messages", [])
         latest_user_text = latest_human_text(messages)
         user_key = state.get("user_key")
@@ -481,230 +698,53 @@ Recent conversation:
         draft = state.get("draft", {})
         if not isinstance(draft, dict):
             draft = {}
-        control = classify_turn(llm, latest_user_text, messages, draft, task_state)
-        turn_intent = str(control.get("intent", "qa")).strip().lower()
-        reset_scope = str(control.get("reset_scope", "none")).strip().lower()
-        use_last_answer = bool(control.get("use_last_answer", False))
 
-        no_email_intent = detect_no_email_intent(latest_user_text)
-        new_task_intent = is_new_task_intent(latest_user_text)
-        skip_followup = followup_reset or no_email_intent or new_task_intent
+        # 1. Classify intent and update task state accordingly.
+        intent_result = _resolve_intent_and_state(
+            llm, latest_user_text, messages, draft, task_state,
+            user_key, chat_id, followup_reset,
+        )
+        turn_intent = intent_result["turn_intent"]
+        reset_scope = intent_result["reset_scope"]
+        use_last_answer = intent_result["use_last_answer"]
+        skip_followup = intent_result["skip_followup"]
+        has_active_draft = intent_result["has_active_draft"]
+        task_state = intent_result["task_state"]
+        draft = intent_result["draft"]
 
-        has_active_draft = isinstance(draft, dict) and bool(draft.get("pending") or draft.get("stage"))
-        if has_active_draft and _is_draft_update_request(latest_user_text):
-            turn_intent = "edit_draft"
-            task_state["active_task"] = "email"
-
-        if turn_intent in {"email", "edit_draft", "confirm_send"}:
-            # Email turns should operate on explicit slots/task_state rather than
-            # merging with previous QA text.
-            skip_followup = True
-
-        if turn_intent in {"retry", "reset"}:
-            skip_followup = True
-
-        if turn_intent == "retry":
-            last_answer_text = str(task_state.get("last_answer", {}).get("text", "")).strip()
-            if last_answer_text:
-                rejected = task_state.get("rejected_answers", [])
-                if not isinstance(rejected, list):
-                    rejected = []
-                rejected.append({"text": last_answer_text[:1800], "reason": "retry"})
-                task_state["rejected_answers"] = rejected[-10:]
-            task_state["last_answer"] = {"text": "", "sources": [], "accepted": False}
-            task_state["active_task"] = "qa"
-
-        if turn_intent == "reset":
-            task_state["active_task"] = ""
-            task_state["email_frame"] = _empty_email_frame()
-            if reset_scope == "chat_soft_reset":
-                task_state["last_answer"] = {"text": "", "sources": [], "accepted": True}
-                task_state["rejected_answers"] = []
-                task_state["last_contact"] = ""
-            if user_key and chat_id:
-                clear_draft(user_key, chat_id)
-            draft = {}
-
-        if turn_intent in {"email", "edit_draft", "confirm_send"}:
-            task_state["active_task"] = "email"
-            if use_last_answer:
-                last_answer_text = str(task_state.get("last_answer", {}).get("text", "")).strip()
-                if last_answer_text:
-                    email_frame = task_state.get("email_frame", _empty_email_frame())
-                    if not isinstance(email_frame, dict):
-                        email_frame = _empty_email_frame()
-                    if not str(email_frame.get("body", "")).strip():
-                        email_frame["body"] = last_answer_text[:1200]
-                    task_state["email_frame"] = email_frame
-        elif turn_intent == "smalltalk":
-            task_state["active_task"] = "smalltalk"
-        else:
-            task_state["active_task"] = "qa"
-
-        # Existing plan/index if this run is mid-execution.
         plan: List[Dict[str, Any]] = state.get("plan", [])
         step_index: int = state.get("step_index", -1)
 
-        email_hint = False
-        defer_draft = False
-        if step_index < 0 and has_active_draft:
-            if turn_intent == "confirm_send" and _is_confirmation_response(latest_user_text):
-                if _has_recent_confirm_prompt(messages):
-                    debug_msg = AIMessage(content="[Planner] Draft pending, routing to mailer.")
-                    return {
-                        "next": "mailer",
-                        "plan": state.get("plan", []),
-                        "step_index": state.get("step_index", -1),
-                        "messages": [debug_msg],
-                        "task_state": task_state,
-                        "turn_intent": turn_intent,
-                        "planner_reasoning": "[fast-path] draft_pending_confirmation",
-                    }
-                defer_draft = True
-            elif turn_intent in {"email", "edit_draft"}:
-                if _email_requires_research(latest_user_text):
-                    plan = [
-                        {
-                            "id": 0,
-                            "action": "researcher",
-                            "description": "Use web search for up-to-date context.",
-                            "tools": ["tavily_search"],
-                        },
-                        {
-                            "id": 1,
-                            "action": "mailer",
-                            "description": "Update and confirm the email draft.",
-                        },
-                    ]
-                    debug_msg = AIMessage(
-                        content="[Planner] Draft pending; routing via researcher then mailer."
-                    )
-                    return {
-                        "next": "researcher",
-                        "plan": plan,
-                        "step_index": 0,
-                        "messages": [debug_msg],
-                        "task_state": task_state,
-                        "turn_intent": turn_intent,
-                        "planner_reasoning": "[fast-path] draft_update_with_research",
-                    }
-                debug_msg = AIMessage(content="[Planner] Draft pending, routing to mailer.")
-                return {
-                    "next": "mailer",
-                    "plan": state.get("plan", []),
-                    "step_index": state.get("step_index", -1),
-                    "messages": [debug_msg],
-                    "task_state": task_state,
-                    "turn_intent": turn_intent,
-                    "planner_reasoning": "[fast-path] draft_pending_to_mailer",
-                }
-            else:
-                defer_draft = True
-        elif turn_intent in {"email", "edit_draft", "confirm_send"}:
-            email_hint = True
+        # 2. Handle active draft fast-paths (confirm, edit, research+send).
+        early_return, defer_draft, email_hint = _handle_active_draft(
+            state, latest_user_text, messages, turn_intent, task_state,
+            has_active_draft, step_index,
+        )
+        if early_return is not None:
+            return early_return
 
         if defer_draft:
             skip_followup = True
         user_query = effective_query(messages, followup_reset=skip_followup, email_hint=email_hint)
-
         if defer_draft:
             plan = []
             step_index = -1
 
-        # On first step: use deterministic fast-paths for common intents.
-        # Ask planner LLM only for ambiguous/complex routing.
-        planner_reasoning_raw = ""
+        # 3. Generate plan if none exists.
         if not plan:
-            source_guess = classify_query_source(user_query)
-            control_hint = f"intent={turn_intent}; use_last_answer={use_last_answer}"
-            # Fast-path high-confidence routing to reduce planner latency.
-            if turn_intent == "smalltalk" or source_guess == "conversational":
-                plan = [{"id": 0, "action": "answerer", "description": "Respond directly."}]
-                planner_reasoning_raw = f"[fast-path] conversational/smalltalk detected"
-                state_messages = []
-            elif turn_intent in {"email", "edit_draft", "confirm_send"} or _detect_email_intent(user_query, email_hint):
-                plan = _fallback_plan_for_query(user_query, email_hint=True)
-                planner_reasoning_raw = f"[fast-path] email intent detected"
-                state_messages = []
-            elif source_guess in {"pdf", "web", "both"}:
-                plan = _fallback_plan_for_query(user_query, email_hint=False)
-                planner_reasoning_raw = f"[fast-path] source={source_guess}"
-                state_messages = []
-            else:
-                chain = prompt | llm | StrOutputParser()
-                raw_plan = chain.invoke(
-                    {
-                        "identity": identity_text,
-                        "query": user_query,
-                        "control_hint": control_hint,
-                        "memory_context": memory_context,
-                        "messages": compact_conversation(messages),
-                    }
-                )
-                planner_reasoning_raw = raw_plan
-
-                try:
-                    raw_text = raw_plan.strip()
-                    if raw_text.startswith("{") and raw_text.endswith("}"):
-                        plan_obj = json.loads(raw_text)
-                    else:
-                        start = raw_text.find("{")
-                        end = raw_text.rfind("}")
-                        plan_obj = json.loads(raw_text[start : end + 1])
-                    steps = plan_obj.get("steps", [])
-                    repaired = _repair_plan(steps, user_query, email_hint)
-                    if _validate_plan(repaired, user_query, email_hint):
-                        plan = repaired
-                        state_messages: List[BaseMessage] = []
-                    else:
-                        plan = _fallback_plan_for_query(
-                            user_query,
-                            email_hint=turn_intent in {"email", "edit_draft", "confirm_send"} or email_hint,
-                        )
-                        debug_msg = AIMessage(
-                            content=(
-                                "[Planner] Invalid JSON plan structure, using fallback. "
-                                f"Raw: {raw_plan}"
-                            )
-                        )
-                        state_messages = [debug_msg]
-                except Exception as e:
-                    plan = _fallback_plan_for_query(
-                        user_query,
-                        email_hint=turn_intent in {"email", "edit_draft", "confirm_send"} or email_hint,
-                    )
-                    debug_msg = AIMessage(
-                        content=(
-                            "[Planner] Failed to parse JSON plan, using fallback. "
-                            f"Error: {e}. Raw: {raw_plan}"
-                        )
-                    )
-                    state_messages = [debug_msg]
-
-            # First time we build a plan: we haven't executed any steps yet
+            plan, planner_reasoning_raw, state_messages = _generate_plan(
+                llm, prompt, identity_text, user_query, turn_intent,
+                use_last_answer, email_hint, memory_context, messages,
+            )
             step_index = -1
         else:
-            # Plan already exists; keep messages list empty by default
+            planner_reasoning_raw = ""
             state_messages: List[BaseMessage] = []
 
-        # Step pointer convention: step_index means "last completed".
-        # So routing chooses next_index = step_index + 1.
-        next_index = step_index + 1
+        # 4. Route to the next step.
+        nxt, next_index = _route_next_step(plan, step_index)
 
-        if next_index >= len(plan):
-            nxt = "FINISH"
-        else:
-            step = plan[next_index]
-            action = str(step.get("action", "")).lower().strip()
-
-            if action not in ("researcher", "answerer", "mailer"):
-                # Guard-rail: if the plan outputs an unknown action, fall back
-                # to a reasonable default.
-                nxt = "answerer" if next_index == len(plan) - 1 else "researcher"
-            else:
-                nxt = action
-
-        # Human-readable debug message for the trace
+        # Debug trace message.
         debug_text_lines = [
             f"[Planner] Turn intent: {turn_intent} (reset={reset_scope}, use_last={use_last_answer})",
             f"[Planner] Plan steps ({len(plan)}):",
@@ -717,8 +757,7 @@ Recent conversation:
         debug_msg = AIMessage(content="\n".join(debug_text_lines))
         state_messages.append(debug_msg)
 
-        # Return updated state
-        response: AgentState = {
+        return {
             "next": nxt,
             "plan": plan,
             "step_index": next_index,
@@ -727,6 +766,5 @@ Recent conversation:
             "turn_intent": turn_intent,
             "planner_reasoning": planner_reasoning_raw,
         }
-        return response
 
     return supervisor
