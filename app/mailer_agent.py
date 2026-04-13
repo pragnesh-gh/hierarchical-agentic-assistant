@@ -218,6 +218,8 @@ def _trim_recipient_tail(name: str) -> str:
     )
     if marker:
         cleaned = cleaned[: marker.start()].strip(" ,.;:-")
+    # Trim trailing "via email/mail" that gets captured with recipient name
+    cleaned = re.sub(r"\s+(?:via|through|by|over)\s+(?:email|mail|e-mail)$", "", cleaned, flags=re.IGNORECASE)
     return cleaned.strip()
 
 
@@ -241,7 +243,8 @@ def _match_email_intent(text: str) -> Tuple[str, str]:
         rf"\b(?:compose|draft|shoot|drop)\s+an?\s+email\s+to\s+(?P<name>[^\.\n!?]+?)(?:{connector}(?P<body>.+))?$",
         rf"\b(?:send\s+)?(?:a\s+)?(?:demo\s+)?(?:mail|email)\s+to\s+(?P<name>[^\.\n!?]+?)(?:{connector}(?P<body>.+))?$",
         rf"\bsend\s+(?P<name>[^\.\n!?]+?)\s+an?\s+email(?:{connector}(?P<body>.+))?$",
-        rf"\b(?:send|forward|share)\s+(?:this|it|that|the same information|same information|same info|same answer|that information|that answer)\s+(?:to|with)\s+(?P<name>[^\.\n!?]+?)(?:{connector}(?P<body>.+))?$",
+        rf"\b(?:send|forward|share)\s+(?:this|it|that|this information|this info|the same information|same information|same info|same answer|that information|that answer)\s+(?:to|with)\s+(?P<name>[^\.\n!?]+?)(?:{connector}(?P<body>.+))?$",
+        rf"\b(?:mail|email)\s+(?P<name>[^\s\.\n!?,]+(?:\s+[^\s\.\n!?,]+)?)\s+(?:about|regarding)\s+(?P<body>.+)$",
     ]
     for pattern in patterns:
         match = re.search(pattern, text, re.IGNORECASE)
@@ -592,6 +595,8 @@ def _wants_same_information(text: str) -> bool:
         "same information",
         "same info",
         "same answer",
+        "this information",
+        "this info",
         "send this",
         "send it",
         "forward this",
@@ -734,14 +739,30 @@ def _build_context(messages, include_sources: bool, memory_context: str = "") ->
             cleaned = _sanitize_context_text(content, include_sources)
             if cleaned:
                 blocks.append(cleaned)
-        elif m_type == "ai" and content and content.startswith("FINAL"):
-            cleaned = _sanitize_context_text(content, include_sources)
-            if cleaned:
-                blocks.append(cleaned)
+        elif m_type == "ai" and content:
+            lowered = content.lower()
+            # Skip debug/planner/confirmation messages, include actual answers
+            if lowered.startswith("[planner]") or lowered.startswith("[debug]"):
+                continue
+            if "confirm send?" in lowered:
+                continue
+            if lowered.startswith("email sent"):
+                continue
+            if content.startswith("FINAL"):
+                cleaned = _sanitize_context_text(content, include_sources)
+                if cleaned:
+                    blocks.append(cleaned)
+            else:
+                # Include recent AI answers as context for email drafting
+                cleaned = _sanitize_context_text(content, include_sources)
+                if cleaned and len(cleaned) > 20:
+                    blocks.append(cleaned)
     memory_text = _sanitize_context_text(memory_context, include_sources).strip()
     if memory_text:
         blocks.append(memory_text)
-    return "\n\n".join(blocks) if blocks else ""
+    # Keep context bounded to avoid overwhelming the small model
+    combined = "\n\n".join(blocks) if blocks else ""
+    return combined[-3000:] if len(combined) > 3000 else combined
 
 
 def _extract_sources(messages) -> Tuple[List[str], List[str], str]:

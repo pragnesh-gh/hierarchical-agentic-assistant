@@ -640,7 +640,8 @@ class GraphMemoryService:
                 if backend == "graphiti":
                     logger.warning("Graph memory: Graphiti backend requested but unavailable, falling back to local JSON — %s", exc)
                     return self._fallback
-                logger.warning("Graph memory: Graphiti unavailable, falling back to local JSON — %s", exc)
+                # Auto mode: Graphiti is optional, degrade quietly
+                logger.debug("Graph memory: Graphiti not configured, using local JSON — %s", exc)
         if backend in {"local", "json", "auto"}:
             logger.info("Graph memory: using local JSON backend")
             return self._fallback

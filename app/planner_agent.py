@@ -68,7 +68,88 @@ def _has_recent_confirm_prompt(messages: List[BaseMessage]) -> bool:
     return False
 
 
-def _email_requires_research(query: str) -> bool:
+_DEICTIC_MARKERS = (
+    "this information", "this info", "this answer",
+    "same information", "same info", "same answer",
+    "that information", "that answer", "what we discussed",
+    "send this", "send it", "forward this", "forward it",
+    "share this", "share it",
+)
+
+_INSTRUCTION_VERB_RE = re.compile(
+    r"\b(?:remind|tell|ask|inform|notify|book|schedule|cancel)\b", re.IGNORECASE
+)
+
+_TOPIC_STOP_WORDS = frozenset({
+    "about", "regarding", "email", "mail", "send", "this", "that",
+    "with", "from", "have", "will", "just", "some", "what", "when",
+    "where", "which", "there", "their", "they", "been", "very",
+    "please", "could", "would", "should", "also", "like", "want",
+})
+
+
+def _extract_email_topic(query: str) -> str:
+    """Extract the topic from 'about/regarding X' in an email request."""
+    match = re.search(r"\b(?:about|regarding)\s+(.+)", query.lower())
+    if not match:
+        return ""
+    topic = match.group(1).strip()
+    topic = re.sub(r"\s+(?:and\s+)?(?:remind|tell|ask|inform|notify)\b.*$", "", topic)
+    return topic
+
+
+def _has_topic_context(
+    topic: str,
+    messages: List[BaseMessage],
+    task_state: Dict[str, Any],
+    memory_context: str,
+) -> bool:
+    """Check if the conversation already contains information about the topic.
+
+    Returns True when context exists (research not needed) or the topic is too
+    generic to meaningfully check (fewer than 2 keywords).
+    """
+    if not topic:
+        return True
+    topic_words = set(re.findall(r"[a-z]{4,}", topic.lower())) - _TOPIC_STOP_WORDS
+    if len(topic_words) < 2:
+        return True  # Too generic (e.g. "the meeting") — skip research
+
+    threshold = max(1, len(topic_words) // 2)
+
+    for msg in (messages or []):
+        m_type = getattr(msg, "type", "")
+        if m_type not in ("ai", "tool"):
+            continue
+        content = str(getattr(msg, "content", "")).lower()
+        if m_type == "ai":
+            if content.startswith("[planner]") or content.startswith("[debug]"):
+                continue
+            if "confirm send?" in content:
+                continue
+        found = sum(1 for w in topic_words if w in content)
+        if found >= threshold:
+            return True
+
+    if isinstance(task_state, dict):
+        last_answer = str(task_state.get("last_answer", {}).get("text", "")).lower()
+        if sum(1 for w in topic_words if w in last_answer) >= threshold:
+            return True
+
+    if memory_context:
+        mem_lower = memory_context.lower()
+        if sum(1 for w in topic_words if w in mem_lower) >= threshold:
+            return True
+
+    return False
+
+
+def _email_requires_research(
+    query: str,
+    messages: List[BaseMessage] | None = None,
+    task_state: Dict[str, Any] | None = None,
+    memory_context: str | None = None,
+) -> bool:
     normalized = query.lower()
     if any(h in normalized for h in FRESHNESS_HINTS):
         return True
@@ -77,6 +158,17 @@ def _email_requires_research(query: str) -> bool:
     # A bare year often appears in event reminders and should not force web.
     if "use the web" in normalized or "use the internet" in normalized:
         return True
+    # Forwarding prior conversation content — no research needed.
+    if any(d in normalized for d in _DEICTIC_MARKERS):
+        return False
+    # User is giving instructions, not requesting facts.
+    if _INSTRUCTION_VERB_RE.search(normalized):
+        return False
+    # Context-aware check: does the conversation already have info on this topic?
+    topic = _extract_email_topic(normalized)
+    if topic and messages is not None:
+        if not _has_topic_context(topic, messages, task_state or {}, memory_context or ""):
+            return True
     return False
 
 
@@ -505,7 +597,7 @@ def _handle_active_draft(
         return None, True, False
 
     if turn_intent in {"email", "edit_draft"}:
-        if _email_requires_research(latest_user_text):
+        if _email_requires_research(latest_user_text, messages=messages, task_state=task_state):
             plan = [
                 {
                     "id": 0,
@@ -555,6 +647,7 @@ def _generate_plan(
     email_hint: bool,
     memory_context: str,
     messages: List[BaseMessage],
+    task_state: Dict[str, Any] | None = None,
 ) -> tuple:
     """Generate or select a plan for the current query.
 
@@ -569,6 +662,16 @@ def _generate_plan(
         return plan, "[fast-path] conversational/smalltalk detected", []
 
     if turn_intent in {"email", "edit_draft", "confirm_send"} or _detect_email_intent(user_query, email_hint):
+        needs_research = _email_requires_research(
+            user_query, messages=messages, task_state=task_state,
+            memory_context=memory_context,
+        )
+        if needs_research:
+            plan = [
+                {"id": 0, "action": "researcher", "description": "Use web search for up-to-date context.", "tools": ["tavily_search"]},
+                {"id": 1, "action": "mailer", "description": "Draft and send the email."},
+            ]
+            return plan, "[fast-path] email intent detected (research needed — no topic context)", []
         plan = _fallback_plan_for_query(user_query, email_hint=True)
         return plan, "[fast-path] email intent detected", []
 
@@ -735,6 +838,7 @@ Recent conversation:
             plan, planner_reasoning_raw, state_messages = _generate_plan(
                 llm, prompt, identity_text, user_query, turn_intent,
                 use_last_answer, email_hint, memory_context, messages,
+                task_state=task_state,
             )
             step_index = -1
         else:
